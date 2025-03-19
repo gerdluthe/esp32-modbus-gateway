@@ -8,6 +8,7 @@
 #include <ModbusClientRTU.h>
 #include "config.h"
 #include "pages.h"
+#include <ESPmDNS.h>
 
 AsyncWebServer webServer(80);
 Config config;
@@ -59,6 +60,13 @@ void setup() {
   setupPages(&webServer, MBclient, &MBbridge, &config, &wm);
   webServer.begin();
   dbgln("[setup] finished");
+  // Initialize mDNS
+if (!MDNS.begin("modbus2eth")) {   // Set the hostname to "esp32.local"
+  Serial.println("Error setting up MDNS responder!");
+  while(1) {
+    delay(1000);
+  }
+}
 }
 
 void loop() {
