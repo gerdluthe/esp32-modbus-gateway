@@ -17,6 +17,9 @@
             unsigned long _serialBaudRate;
             uint32_t _serialConfig;
             String _webPassword;
+            int16_t _txpin;
+            int16_t _rxpin;
+
         public:
             Config();
             void begin(Preferences *prefs);
@@ -46,6 +49,10 @@
             void setSerialStopBits(uint8_t value);
             String getWebPassword();
             void setWebPassword(String value);
+            uint16_t gettxpin();
+            void settxpin(uint16_t value);
+            uint16_t getrxpin();
+            void setrxpin(uint16_t value);
     };
     #ifdef DEBUG
     #define dbg(x...) debugSerial.print(x);
