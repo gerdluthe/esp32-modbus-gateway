@@ -45,7 +45,7 @@ void setup() {
   dbgln("Use user defined RX/TX pins");
 #else
   // otherwise use default pins for hardware-serial2
-  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig());
+  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig(), config.getrxpin(), config.gettxpin());
 #endif
 
   MBclient = new ModbusClientRTU(config.getModbusRtsPin());

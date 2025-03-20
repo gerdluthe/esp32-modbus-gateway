@@ -6,6 +6,8 @@
 #define WEB_PASS_PLACEHOLDER "****"
 
 
+void sendPinsForm(AsyncResponseStream *response, String txId, String reg, String function, String count);
+
 void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, Config *config, WiFiManager *wm){
   server->on("/", HTTP_GET, [config](AsyncWebServerRequest *request){
     
@@ -16,6 +18,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseHeader(response, "Main");
     sendButton(response, "Status", "status");
     sendButton(response, "Config", "config");
+    sendButton(response, "Set PINs","pins");
     sendButton(response, "Debug", "debug");
     sendButton(response, "Firmware update", "update");
     sendButton(response, "WiFi reset", "wifi", "r");
@@ -23,6 +26,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
+ 
+  
+  
   server->on("/status", HTTP_GET, [rtu, bridge, config](AsyncWebServerRequest *request){
     
     ADMIN_WEB_PASS;
@@ -310,8 +316,73 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     }
     request->redirect("/");    
   });
-  server->on("/debug", HTTP_GET, [config](AsyncWebServerRequest *request){
+  server->on("/pins", HTTP_GET, [config](AsyncWebServerRequest *request){
     
+    ADMIN_WEB_PASS;
+  
+  dbgln("[webserver] GET /pins");
+  auto *response = request->beginResponseStream("text/html");
+  sendResponseHeader(response, "RX & TX Pin RS485 is connected to");
+  response->print("<form method=\"post\">");
+  response->print("<table>"
+    "<tr>"
+      "<td>"
+        "<label for=\"tx\">TX PIN</label>"
+      "</td>"
+      "<td>");
+  response->printf("<input type=\"number\" min=\"1\" max=\"65535\" id=\"tx\" name=\"tx\" value=\"%d\">", config->gettxpin());
+  response->print("</td>"
+    "</tr>"
+    "<tr>"
+      "<td>"
+        "<label for=\"rx\">RX PIN</label>"
+      "</td>"
+      "<td>");
+  response->printf("<input type=\"number\" min=\"1\" id=\"rx\" name=\"rx\" value=\"%d\">", config->getrxpin());
+  response->print("</td>"
+      "</tr>"
+      "</table>"
+ 
+        "</td>");
+        
+   response->print("<button class=\"r\">Save</button>"
+    "</form>"
+    "<p></p>");
+  sendButton(response, "Back", "/");
+  response->print("<script>"
+    "(function(){"
+      "var s = document.querySelectorAll('select[data-value]');"
+      "for(d of s){"
+        "d.querySelector(`option[value='${d.dataset.value}']`).selected=true"
+    "}})();"
+    "</script>");
+  sendResponseTrailer(response);
+  request->send(response);
+});
+server->on("/pins", HTTP_POST, [config](AsyncWebServerRequest *request){
+
+  ADMIN_WEB_PASS;
+
+  dbgln("[webserver] POST /pins");
+  if (request->hasParam("tx", true)){
+    auto pintx = request->getParam("tx", true)->value().toInt();
+    config->settxpin(pintx);
+    dbgln("[webserver] saved Pin TX");
+  }
+  if (request->hasParam("rx", true)){
+    auto pinrx = request->getParam("rx", true)->value().toInt();
+    config->setrxpin(pinrx);
+    dbgln("[webserver] saved Pin RX");
+  }
+      
+  
+  request->redirect("/");    
+});
+
+
+  server->on("/debug", HTTP_GET, [config](AsyncWebServerRequest *request){
+   
+        
     ADMIN_WEB_PASS;
 
     dbgln("[webserver] GET /debug");
@@ -593,6 +664,61 @@ void sendTableRow(AsyncResponseStream *response, const char *name, uint32_t valu
         "<td>%d</td>"
       "</tr>", name, value);
 }
+
+void sendPinsForm(AsyncResponseStream *response, String txId, String reg, String function, String count){
+  response->print("<form method=\"post\">");
+  response->print("<table>"
+    "<tr>"
+      "<td>"
+        "<label for=\"pins\">TX ID</label>"
+      "</td>"
+      "<td>");
+  response->printf("<input type=\"number\" min=\"0\" max=\"247\" id=\"slave\" name=\"slave\" value=\"%s\">", txId.c_str());
+  response->print("</td>"
+      "</tr>"
+      "<tr>"
+        "<td>"
+          "<label for=\"func\">Function</label>"
+        "</td>"
+        "<td>");
+  response->printf("<select id=\"func\" name=\"func\" data-value=\"%s\">", function.c_str());
+  response->print("<option value=\"1\">01 Read Coils</option>"
+            "<option value=\"2\">02 Read Discrete Inputs</option>"
+            "<option value=\"3\">03 Read Holding Register</option>"
+            "<option value=\"4\">04 Read Input Register</option>"
+          "</select>"
+        "</td>"
+      "</tr>"
+      "<tr>"
+        "<td>"
+          "<label for=\"reg\">Register</label>"
+        "</td>"
+        "<td>");
+  response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"reg\" name=\"reg\" value=\"%s\">", reg.c_str());
+  response->print("</td>"
+      "</tr>"
+      "<tr>"
+        "<td>"
+          "<label for=\"count\">Count</label>"
+        "</td>"
+        "<td>");
+  response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"count\" name=\"count\" value=\"%s\">", count.c_str());
+  response->print("</td>"
+      "</tr>"
+    "</table>");
+  response->print("<button class=\"r\">Send</button>"
+    "</form>"
+    "<p></p>");
+  response->print("<script>"
+    "(function(){"
+      "var s = document.querySelectorAll('select[data-value]');"
+      "for(d of s){"
+        "d.querySelector(`option[value='${d.dataset.value}']`).selected=true"
+    "}})();"
+    "</script>");
+}
+
+
 
 void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, String function, String count){
     response->print("<form method=\"post\">");

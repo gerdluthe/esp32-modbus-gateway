@@ -10,6 +10,8 @@ Config::Config()
     ,_serialBaudRate(115200)
     ,_serialConfig(SERIAL_8N1)
     ,_webPassword("")
+    ,_txpin(17)
+    ,_rxpin(16)
 {}
 
 void Config::begin(Preferences *prefs)
@@ -23,7 +25,10 @@ void Config::begin(Preferences *prefs)
     _serialBaudRate = _prefs->getULong("serialBaudRate", _serialBaudRate);
     _serialConfig = _prefs->getULong("serialConfig", _serialConfig);
     _webPassword = _prefs->getString("webPassword", _webPassword);
+    _txpin = _prefs->getUShort("txpin", _txpin);
+    _rxpin = _prefs->getUShort("rxpin", _rxpin);
 }
+
 
 uint16_t Config::getTcpPort(){
     return _tcpPort;
@@ -167,4 +172,25 @@ void Config::setWebPassword(String value){
     if (webpass == value) return;
     _webPassword = value;
     _prefs->putString("webPassword", _webPassword);
+}
+
+uint16_t Config::getrxpin(){
+    return _rxpin;
+}
+
+void Config::setrxpin(uint16_t value){
+    if (_rxpin == value) return;
+    _rxpin = value;
+    _prefs->putUShort("rxpin", _rxpin);
+}
+
+
+uint16_t Config::gettxpin(){
+    return _txpin;  
+}
+
+void Config::settxpin(uint16_t value){
+    if (_txpin == value) return;
+    _txpin = value;
+    _prefs->putUShort("txpin", _txpin);
 }
