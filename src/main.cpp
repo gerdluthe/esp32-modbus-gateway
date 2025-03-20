@@ -61,7 +61,7 @@ void setup() {
   webServer.begin();
   dbgln("[setup] finished");
   // Initialize mDNS
-if (!MDNS.begin("modbus2eth")) {   // Set the hostname to "esp32.local"
+if (!MDNS.begin("modbus2eth")) {   // Set the hostname to "modbus2eth.local"
   Serial.println("Error setting up MDNS responder!");
   while(1) {
     delay(1000);
