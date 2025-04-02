@@ -19,6 +19,7 @@
             String _webPassword;
             int16_t _txpin;
             int16_t _rxpin;
+            String _ipAdr;
 
         public:
             Config();
@@ -53,6 +54,9 @@
             void settxpin(uint16_t value);
             uint16_t getrxpin();
             void setrxpin(uint16_t value);
+            String getipAdr();
+            void setipAdr(String value);
+            
     };
     #ifdef DEBUG
     #define dbg(x...) debugSerial.print(x);
