@@ -16,6 +16,14 @@ Preferences prefs;
 ModbusClientRTU *MBclient;
 ModbusBridgeWiFi MBbridge;
 WiFiManager wm;
+// Set your Static IP address
+IPAddress local_IP(192, 168, 207, 165);
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 207, 1);
+IPAddress subnet(255, 255, 255, 0);
+//IPAddress primaryDNS(8, 8, 8, 8);   //optional
+//IPAddress secondaryDNS(8, 8, 4, 4); //optional
+String ipr; 
 
 void setup() {
   debugSerial.begin(115200);
@@ -26,11 +34,20 @@ void setup() {
   debugSerial.end();
   debugSerial.begin(config.getSerialBaudRate(), config.getSerialConfig());
   dbgln("[wifi] start");
-  WiFi.mode(WIFI_STA);
+  
+  // WiFi.mode(WIFI_STA);
+  // Configures static IP address
+  ipr=config.getipAdr();
+  local_IP.fromString(ipr);
+  if (!WiFi.config(local_IP, gateway, subnet)) {
+    Serial.println("STA Failed to configure");
+  }
   wm.setClass("invert");
   auto reboot = false;
   wm.setAPCallback([&reboot](WiFiManager *wifiManager){reboot = true;});
   wm.autoConnect();
+  String hostname = "ModbusSDM630toLAN";
+  WiFi.setHostname(hostname.c_str()); //define hostname
   if (reboot){
     ESP.restart();
   }
@@ -61,7 +78,7 @@ void setup() {
   webServer.begin();
   dbgln("[setup] finished");
   // Initialize mDNS
-if (!MDNS.begin("modbus2eth")) {   // Set the hostname to "modbus2eth.local"
+if (!MDNS.begin("modbus2")) {   // Set the hostname to "modbus2eth.local"
   Serial.println("Error setting up MDNS responder!");
   while(1) {
     delay(1000);

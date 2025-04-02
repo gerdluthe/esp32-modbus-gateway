@@ -12,6 +12,7 @@ Config::Config()
     ,_webPassword("")
     ,_txpin(17)
     ,_rxpin(16)
+    ,_ipAdr("")
 {}
 
 void Config::begin(Preferences *prefs)
@@ -27,6 +28,7 @@ void Config::begin(Preferences *prefs)
     _webPassword = _prefs->getString("webPassword", _webPassword);
     _txpin = _prefs->getUShort("txpin", _txpin);
     _rxpin = _prefs->getUShort("rxpin", _rxpin);
+    _ipAdr = _prefs->getString("ipAdr", _ipAdr);
 }
 
 
@@ -193,4 +195,15 @@ void Config::settxpin(uint16_t value){
     if (_txpin == value) return;
     _txpin = value;
     _prefs->putUShort("txpin", _txpin);
+}
+
+String Config::getipAdr(){
+    return _ipAdr;
+}
+
+void Config::setipAdr(String value){
+    auto iptmp = getipAdr();
+    if (iptmp == value) return;
+    _ipAdr = value;
+    _prefs->putString("ipAdr", _ipAdr);
 }

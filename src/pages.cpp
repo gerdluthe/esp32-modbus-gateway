@@ -4,6 +4,7 @@
         if ((!config->getWebPassword().equals("")) && (!request->authenticate("admin", config->getWebPassword().c_str()))) \
             return request->requestAuthentication();
 #define WEB_PASS_PLACEHOLDER "****"
+String IP_PLACEHOLDER;
 
 
 void sendPinsForm(AsyncResponseStream *response, String txId, String reg, String function, String count);
@@ -18,7 +19,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseHeader(response, "Main");
     sendButton(response, "Status", "status");
     sendButton(response, "Config", "config");
-    sendButton(response, "Set PINs","pins");
+    sendButton(response, "Set PINs / IP","pins");
     sendButton(response, "Debug", "debug");
     sendButton(response, "Firmware update", "update");
     sendButton(response, "WiFi reset", "wifi", "r");
@@ -307,11 +308,11 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     }
     if (request->hasParam("wp", true)){
       String wp = request->getParam("wp", true)->value();
-      if (!wp.equals(WEB_PASS_PLACEHOLDER)) { // if we get default value prefilled in the wp input we're not changing current one
+      if (!wp.equals(IP_PLACEHOLDER)) { // if we get default value prefilled in the wp input we're not changing current one
         config->setWebPassword(wp);
-        dbgln("[webserver] saved web password");
+        dbgln("[webserver] saved IP Adress");
       } else {
-        dbgln("[webserver] web password not changed");
+        dbgln("[webserver] IP Adress not changed");
       }
     }
     request->redirect("/");    
@@ -322,7 +323,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
   
   dbgln("[webserver] GET /pins");
   auto *response = request->beginResponseStream("text/html");
-  sendResponseHeader(response, "RX & TX Pin RS485 is connected to");
+  sendResponseHeader(response, "RX & TX Pin RS485");
   response->print("<form method=\"post\">");
   response->print("<table>"
     "<tr>"
@@ -341,6 +342,19 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
   response->printf("<input type=\"number\" min=\"1\" id=\"rx\" name=\"rx\" value=\"%d\">", config->getrxpin());
   response->print("</td>"
       "</tr>"
+       "<tr>"
+          "<td>"
+            "<label for=\"ipa\">IP adress: </label>"
+          "</td>"
+          "<td>");
+          IP_PLACEHOLDER = config->getipAdr();
+    response->printf("<input type=\"string\" min=\"0\" id=\"ipa\" name=\"ipa\" value=\"%s\">", IP_PLACEHOLDER.c_str()); 
+    response->print("</td>"
+        "</tr>"
+
+
+
+
       "</table>"
  
         "</td>");
@@ -374,7 +388,15 @@ server->on("/pins", HTTP_POST, [config](AsyncWebServerRequest *request){
     config->setrxpin(pinrx);
     dbgln("[webserver] saved Pin RX");
   }
-      
+  if (request->hasParam("ipa", true)){
+    String ipa = request->getParam("ipa", true)->value();
+    if (!ipa.equals(IP_PLACEHOLDER)) { // if we get default value prefilled in the ipa input we're not changing current one
+      config->setipAdr(ipa);
+      dbgln("[webserver] saved ip Adress");
+    } else {
+      dbgln("[webserver] ip adress not changed");
+    }
+  } 
   
   request->redirect("/");    
 });
