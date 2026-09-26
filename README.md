@@ -1,6 +1,7 @@
 # ESP32 Modbus RTU/TCP Gateway
 
 A generic firmware for an ESP32 to be used as a Modbus TCP/IP gateway for any modbus RTU device.
+for example to communicate with an sdm630 smartmeter to use in victron devices as virtual smartmeter
 Default RX/TX pins for the TTL-RS485 communication are used from hardware-serial2 (check pinout of your esp32-board for UART2-TX and UART2-RX).
 If you like to use different RX/TX pins, you can define them as build_flags in the platformio.ini.
 E.g.:
